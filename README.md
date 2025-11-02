@@ -33,6 +33,16 @@ bash
 psql -U postgres -d yard_planning -f migrations/001_init_schema.sql 4. Configuration
 Copy .env.example ke .env dan sesuaikan:
 
+🐳 **Docker Setup**
+
+Project ini juga sudah mendukung full containerization menggunakan **Docker & Docker Compose**.  
+Seluruh komponen — API, PostgreSQL, dan Redis — dapat dijalankan otomatis dengan satu perintah.
+
+### 1. Jalankan Semua Service
+
+```bash
+docker-compose up -d --build
+
 bash
 cp .env.example .env
 Edit .env sesuai konfigurasi database Anda:
@@ -96,7 +106,8 @@ Response:
 json
 {
 "message": "Success"
-} 3. Pickup Container
+}
+ 3. Pickup Container
 Mengambil kontainer dari yard.
 
 Endpoint: POST /pickup
@@ -113,7 +124,105 @@ Response:
 json
 {
 "message": "Success"
-} 4. Health Check
+}
+
+4. Bulk Suggestion
+Mencari posisi untuk banyak kontainer sekaligus (misalnya 50–100 kontainer).
+Endpoint: POST /bulk/suggestion
+Request Body:
+
+{
+  "containers": [
+    {
+      "yard": "YRD1",
+      "container_number": "BULK001",
+      "container_size": 20,
+      "container_height": 8.6,
+      "container_type": "DRY"
+    },
+    {
+      "yard": "YRD1",
+      "container_number": "BULK002",
+      "container_size": 20,
+      "container_height": 8.6,
+      "container_type": "DRY"
+    }
+  ]
+}
+
+Response:
+
+{
+  "results": [
+    {
+      "container_number": "BULK001",
+      "suggested_position": {
+        "block": "LC01",
+        "slot": 1,
+        "row": 1,
+        "tier": 1
+      }
+    },
+    {
+      "container_number": "BULK002",
+      "suggested_position": {
+        "block": "LC01",
+        "slot": 2,
+        "row": 1,
+        "tier": 1
+      }
+    }
+  ]
+}
+
+5. Bulk Placement
+
+Menempatkan banyak kontainer sekaligus ke posisi yang sudah disarankan.
+
+Endpoint: POST /bulk/placement
+
+Request Body:
+
+
+{
+  "containers": [
+    {
+      "yard": "YRD1",
+      "container_number": "BULK001",
+      "block": "LC01",
+      "slot": 1,
+      "row": 1,
+      "tier": 1
+    },
+    {
+      "yard": "YRD1",
+      "container_number": "BULK002",
+      "block": "LC01",
+      "slot": 2,
+      "row": 1,
+      "tier": 1
+    }
+  ]
+}
+
+Response:
+
+{
+  "message": "Bulk placement completed successfully",
+  "placed_containers": [
+    {
+      "container_number": "BULK001",
+      "status": "placed"
+    },
+    {
+      "container_number": "BULK002",
+      "status": "placed"
+    }
+  ]
+}
+
+
+ 4. Health Check
 Endpoint: GET /health
 
 Response: OK
@@ -208,3 +317,4 @@ CI/CD Pipeline
 Metrics & Monitoring
 📄 License
 MIT License
+```
